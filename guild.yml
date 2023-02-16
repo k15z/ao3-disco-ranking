@@ -1,0 +1,12 @@
+train:
+    description: Train an AO3 Disco ranking model.
+    main: ao3_disco_ranking.train
+    requires:
+        - file: data/test.jsonl
+          target-path: data
+        - file: data/train.jsonl
+          target-path: data
+        - file: data/works_collections.pkl
+          target-path: data
+    flags-dest: globals
+    flags-import: all
