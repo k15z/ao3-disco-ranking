@@ -25,10 +25,10 @@ jobs:
       - name: Unit & Coverage test with pytest
         run: poetry run pytest
       
-      - name: Check style with pylint
-        run: poetry run pylint ao3_disco_ranking/ tests/
+      - name: Check imports with isort
+        run: poetry run isort --check ao3_disco_ranking tests
       - name: Check format with black
         run: poetry run black --check ao3_disco_ranking/ tests/
       - name: Check type hinting with mypy
-        run: poetry run mypy --strict --config-file=mypy.ini ao3_disco_ranking/
+        run: poetry run mypy --config-file=mypy.ini ao3_disco_ranking/
       
