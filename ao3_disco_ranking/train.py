@@ -1,13 +1,15 @@
-from ao3_disco_ranking.models import BaseModel, FirstModel, SecondModel
+import pickle
+
+from ao3_disco_ranking.models import BaseModel, DeepSecondModel, FirstModel, SecondModel
 from ao3_disco_ranking.utils import score
 
-model_type = "baseline"
+model_type = "deepsecond"
 
 use_xgb = False
 
 lr = 1e-2
 batch_size = 100
-num_epochs = 2
+num_epochs = 5
 output_dim = 128
 max_hash_size = 50000
 dropout = 0.0
@@ -27,6 +29,11 @@ elif model_type == "first":
     )
 elif model_type == "second":
     model = SecondModel(use_xgb=use_xgb)
+elif model_type == "deepsecond":
+    model = DeepSecondModel()
 
 model.fit("data/train.jsonl")
 print("ncdg:", score(model, "data/test.jsonl"))
+
+with open("model.pkl", "wb") as fout:
+    pickle.dump(model, fout)

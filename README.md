@@ -3,7 +3,7 @@
 
 [![PyPI version](https://badge.fury.io/py/ao3-disco-ranking.svg)](https://badge.fury.io/py/ao3-disco-ranking)
 ![versions](https://img.shields.io/pypi/pyversions/ao3-disco-ranking.svg)
-[![GitHub license](https://img.shields.io/github/license/mgancita/ao3-disco-ranking.svg)](https://github.com/mgancita/ao3-disco-ranking/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/mgancita/ao3-disco-ranking.svg)](https://github.com/k15z/ao3-disco-ranking/blob/main/LICENSE)
 
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)

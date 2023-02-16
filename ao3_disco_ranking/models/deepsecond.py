@@ -1,8 +1,3 @@
-"""First stage models.
-
-These models are designed to be used to generate an initial embedding pool using an
-approximate nearest neighbors library.
-"""
 import json
 import pickle
 from random import shuffle
@@ -18,7 +13,60 @@ from .embedding import EmbeddingModule
 from .features import FeatureExtractor
 
 
-class FirstModel(BaseModel):
+class PairwiseRankingModule(nn.Module):
+    def __init__(
+        self,
+        fe,
+        output_dim=128,
+        max_hash_size=50000,
+        dropout=0.0,
+        use_batch_norm=False,
+    ):
+        super().__init__()
+        self.embedding = EmbeddingModule(
+            fe,
+            output_dim=output_dim,
+            max_hash_size=max_hash_size,
+            dropout=dropout,
+            use_batch_norm=use_batch_norm,
+        )
+        self.linear = nn.Sequential(nn.BatchNorm1d(7), nn.Linear(7, 1))
+
+    def forward(self, work_pairs, work_features):
+        x1, x2 = zip(*work_pairs)
+        x1 = self.embedding(x1, work_features)
+        x2 = self.embedding(x2, work_features)
+        interactions = torch.stack(
+            [
+                torch.cosine_similarity(x1["embedding"], x2["embedding"], dim=1),
+                torch.cosine_similarity(x1["dense_embedding"], x2["dense_embedding"], dim=1),
+                torch.cosine_similarity(
+                    x1["sparse_embeddings"]["fandom"], x2["sparse_embeddings"]["fandom"], dim=1
+                ),
+                torch.cosine_similarity(
+                    x1["sparse_embeddings"]["category"], x2["sparse_embeddings"]["category"], dim=1
+                ),
+                torch.cosine_similarity(
+                    x1["sparse_embeddings"]["relationship"],
+                    x2["sparse_embeddings"]["relationship"],
+                    dim=1,
+                ),
+                torch.cosine_similarity(
+                    x1["sparse_embeddings"]["character"],
+                    x2["sparse_embeddings"]["character"],
+                    dim=1,
+                ),
+                torch.cosine_similarity(
+                    x1["sparse_embeddings"]["freeform"], x2["sparse_embeddings"]["freeform"], dim=1
+                ),
+            ],
+            dim=1,
+        )
+        assert not torch.isnan(interactions).any()
+        return self.linear(interactions)[:, 0]
+
+
+class DeepSecondModel(BaseModel):
     def __init__(
         self,
         lr=1e-2,
@@ -54,7 +102,7 @@ class FirstModel(BaseModel):
         self.featurizer.fit(work_to_json)
         work_to_features = {k: self.featurizer.transform(v) for k, v in work_to_json.items()}
 
-        self.model = EmbeddingModule(
+        self.model = PairwiseRankingModule(
             self.featurizer,
             self.output_dim,
             self.max_hash_size,
@@ -75,26 +123,24 @@ class FirstModel(BaseModel):
             losses = []
             iterator = tqdm(_batched_dataset(dataset))
             for batch in iterator:
-                works, indices, y_true = [], [], []
+                work_pairs, indices, y_true = [], [], []
                 for row in batch:
                     candidates, scores = zip(*row["candidates"].items())
 
-                    anchor_idx = len(works)
-                    candidate_idx = (len(works) + 1, len(works) + len(candidates) + 1)
-                    indices.append((anchor_idx, candidate_idx))
+                    start_idx = len(work_pairs)
+                    end_idx = len(work_pairs) + len(candidates)
+                    indices.append((start_idx, end_idx))
 
-                    works.append(row["work"])
-                    works.extend(candidates)
+                    for c in candidates:
+                        work_pairs.append((row["work"], c))
 
                     y_true.append(scores)
 
-                embeddings = self.model(works, work_to_features)["embedding"]
+                results = self.model(work_pairs, work_to_features)
 
                 loss = 0.0
-                for (anchor_idx, (start_idx, end_idx)), y in zip(indices, y_true):
-                    y_pred = 10.0 * F.cosine_similarity(
-                        embeddings[anchor_idx], embeddings[start_idx:end_idx]
-                    )
+                for (start_idx, end_idx), y in zip(indices, y_true):
+                    y_pred = 10.0 * results[start_idx:end_idx]
                     y_true = F.softmax(torch.FloatTensor(y), dim=0)
                     y_pred = F.softmax(y_pred, dim=0)
                     loss += -torch.sum(y_true * torch.log(y_pred))
@@ -111,15 +157,11 @@ class FirstModel(BaseModel):
 
         self.model.eval()
 
-    def embedding(self, work_id: WorkID) -> np.ndarray:
-        work_features = {work_id: self.featurizer.transform(self.works[work_id])}
-        with torch.no_grad():
-            return self.model([work_id], work_features)["embedding"].detach().numpy()[0]
-
     def rank(self, work_id, candidates):
-        all_works = [work_id] + list(candidates)
-        work_features = {k: self.featurizer.transform(self.works[k]) for k in all_works}
+        work_pairs = [(work_id, c) for c in list(candidates)]
+        work_features = {
+            k: self.featurizer.transform(self.works[k]) for k in [work_id] + list(candidates)
+        }
         with torch.no_grad():
-            embeddings = self.model(all_works, work_features)["embedding"]
-        scores = F.cosine_similarity(embeddings[0], embeddings[1:])
+            scores = self.model(work_pairs, work_features)
         return list(zip(list(candidates), scores.detach().numpy()))
