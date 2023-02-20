@@ -63,7 +63,11 @@ class PairwiseRankingModule(nn.Module):
             dim=1,
         )
         assert not torch.isnan(interactions).any()
-        return self.linear(interactions)[:, 0]
+        return {
+            "score": self.linear(interactions)[:, 0],
+            "embedding1": x1["embedding"],
+            "embedding2": x2["embedding"],
+        }
 
 
 class DeepSecondModel(BaseModel):
@@ -140,11 +144,11 @@ class DeepSecondModel(BaseModel):
 
                 loss = 0.0
                 for (start_idx, end_idx), y in zip(indices, y_true):
-                    y_pred = 10.0 * results[start_idx:end_idx]
+                    y_pred = results["score"][start_idx:end_idx]
                     y_true = F.softmax(torch.FloatTensor(y), dim=0)
                     y_pred = F.softmax(y_pred, dim=0)
                     loss += -torch.sum(y_true * torch.log(y_pred))
-                loss /= len(indices)
+                loss /= len(indices) * 2
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -163,5 +167,5 @@ class DeepSecondModel(BaseModel):
             k: self.featurizer.transform(self.works[k]) for k in [work_id] + list(candidates)
         }
         with torch.no_grad():
-            scores = self.model(work_pairs, work_features)
+            scores = self.model(work_pairs, work_features)["score"]
         return list(zip(list(candidates), scores.detach().numpy()))

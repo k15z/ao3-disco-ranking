@@ -30,7 +30,15 @@ elif model_type == "first":
 elif model_type == "second":
     model = SecondModel(use_xgb=use_xgb)
 elif model_type == "deepsecond":
-    model = DeepSecondModel()
+    model = DeepSecondModel(
+        lr=lr,
+        num_epochs=num_epochs,
+        batch_size=batch_size,
+        output_dim=output_dim,
+        max_hash_size=max_hash_size,
+        dropout=dropout,
+        use_batch_norm=use_batch_norm,
+    )
 
 model.fit("data/train.jsonl")
 print("ncdg:", score(model, "data/test.jsonl"))

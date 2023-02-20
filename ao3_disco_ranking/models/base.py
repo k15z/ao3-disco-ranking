@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-WorkID = str
+from ao3_disco_ranking.types import WorkID
 
 
 class BaseModel(ABC):
