@@ -8,7 +8,14 @@ This library is designed to work with GuildAI which makes it easy to track and m
 model variants. For example, you can use guild to automatically tune the hyperparameters for 
 the first stage model:
 
-> guild run model_type=first num_epochs='[2,5]' output_dim='[64,128,256]' max_hash_size='[10000, 25000, 50000]' use_batch_norm='[True,False]' dropout='[0.0, 0.2]' --optimizer gp --maximize ncdg
+```bash
+guild run model_type=first \
+    num_epochs='[2,5,10,100]' \
+    output_dim='[64,128,256]' \
+    max_hash_size='[10000, 25000, 50000]' \
+    use_batch_norm='[True,False]' \
+    --optimizer gp --maximize ncdg
+```
 
 Pre-trained models are stored as pickle files which can be loaded by the AO3 Disco server directly
 and used for inference.

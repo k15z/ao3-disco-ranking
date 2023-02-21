@@ -18,25 +18,24 @@ with open("data/works_collections.pkl", "rb") as fin:
     workIDs = list(works.keys())
 
 fandom_to_works = {}
-for workID, work in tqdm(works.items(), ""):
+for workID, work in tqdm(works.items(), "Building fandom mapping..."):
     for fandom in work["tags"]["fandom"]:
         if fandom not in fandom_to_works:
             fandom_to_works[fandom] = []
         fandom_to_works[fandom].append(workID)
 
 work_to_related_works = {}
-for collection in tqdm(collections):
+for collection in tqdm(collections, "Building related works..."):
     for w1 in collection:
         if w1 not in work_to_related_works:
             work_to_related_works[w1] = Counter()
-        for w2 in collection:
-            if w1 != w2:
-                work_to_related_works[w1][w2] += 1
+        work_to_related_works[w1].update(collection)
 
 train = open("data/train.jsonl", "wt")
 test = open("data/test.jsonl", "wt")
-for work, related_works in tqdm(work_to_related_works.items()):
+for work, related_works in tqdm(work_to_related_works.items(), "Exporting dataset..."):
     fout = train if random() > 0.1 else test
+    del related_works[work]
 
     # Most related works (no filter)
     candidates = Counter()

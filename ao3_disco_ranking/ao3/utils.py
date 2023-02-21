@@ -1,7 +1,7 @@
 # flake8: noqa
 import os
 import time
-from random import choice, random
+from random import choice
 
 import requests
 
