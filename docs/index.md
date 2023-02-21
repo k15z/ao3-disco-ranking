@@ -12,7 +12,7 @@ the first stage model:
 guild run model_type=first \
     num_epochs='[2,5,10,100]' \
     output_dim='[64,128,256]' \
-    max_hash_size='[10000, 25000, 50000]' \
+    max_hash_size='[10000,25000,50000]' \
     use_batch_norm='[True,False]' \
     --optimizer gp --maximize ncdg
 ```
