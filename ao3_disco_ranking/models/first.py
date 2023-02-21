@@ -6,6 +6,7 @@ approximate nearest neighbors library.
 import json
 import pickle
 from random import shuffle
+from typing import Any, Dict
 
 import numpy as np
 import torch
@@ -36,19 +37,19 @@ class FirstModel(BaseModel):
         self.max_hash_size = max_hash_size
         self.dropout = dropout
         self.use_batch_norm = use_batch_norm
-        with open("data/works_collections.pkl", "rb") as fin:
-            works, _ = pickle.load(fin)
-            self.works = works
 
     def fit(self, path_to_jsonl):
+        with open("data/works_collections.pkl", "rb") as fin:
+            works, _ = pickle.load(fin)
+
         dataset = []
         work_to_json = {}
         with open(path_to_jsonl, "rt") as fin:
             for x in tqdm(map(json.loads, fin)):
                 dataset.append(x)
-                work_to_json[x["work"]] = self.works[x["work"]]
+                work_to_json[x["work"]] = works[x["work"]]
                 for work, _ in x["candidates"].items():
-                    work_to_json[work] = self.works[work]
+                    work_to_json[work] = works[work]
 
         self.featurizer = FeatureExtractor()
         self.featurizer.fit(work_to_json)
@@ -111,14 +112,14 @@ class FirstModel(BaseModel):
 
         self.model.eval()
 
-    def embedding(self, work_id: WorkID) -> np.ndarray:
-        work_features = {work_id: self.featurizer.transform(self.works[work_id])}
+    def embedding(self, work_id: WorkID, works: Dict[WorkID, Any]) -> np.ndarray:
+        work_features = {work_id: self.featurizer.transform(works[work_id])}
         with torch.no_grad():
-            return self.model([work_id], work_features)["embedding"].detach().numpy()[0]
+            return self.model([work_id], work_features)["embedding"].detach()[0]
 
-    def rank(self, work_id, candidates):
+    def rank(self, work_id, candidates, works: Dict[WorkID, Any]):
         all_works = [work_id] + list(candidates)
-        work_features = {k: self.featurizer.transform(self.works[k]) for k in all_works}
+        work_features = {k: self.featurizer.transform(works[k]) for k in all_works}
         with torch.no_grad():
             embeddings = self.model(all_works, work_features)["embedding"]
         scores = F.cosine_similarity(embeddings[0], embeddings[1:])

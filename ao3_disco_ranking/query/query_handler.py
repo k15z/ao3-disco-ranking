@@ -24,7 +24,7 @@ class QueryHandler:
         included_tags: Tags = [],
         excluded_tags: Tags = [],
         match_fandom: bool = True,
-        N=50,
+        num_results: int = 50,
     ):
         logging.info(f"Querying for {work_id}.")
         work_json = list(get_work_jsons([work_id]))[0]
@@ -40,15 +40,17 @@ class QueryHandler:
             candidates = self.tags_filter.fetch(included_tags, excluded_tags, one_or_more_tags)
             if not candidates:
                 raise ValueError("No works could be found.")
-            logging.info(f"Tags filter selected {len(candidates)}/{N} candidates.")
+            logging.info(f"Tags filter selected {len(candidates)}/{num_results} candidates.")
 
         logging.info("Applying the graph ranker...")
-        graph_results = self.graph_ranker.rank(work_id, candidates, N=N)
-        logging.info(f"Graph ranker returned {len(graph_results)}/{N} candidates.")
-        if len(graph_results) >= N:
+        graph_results = self.graph_ranker.rank(work_id, candidates, num_results=num_results)
+        logging.info(f"Graph ranker returned {len(graph_results)}/{num_results} candidates.")
+        if len(graph_results) >= num_results:
             return graph_results
 
         logging.info("Falling back to embedding ranker...")
-        embedding_results = self.embedding_ranker.rank(work_id, candidates, N=N)
-        logging.info(f"Embedding ranker returned {len(embedding_results)}/{N} candidates.")
+        embedding_results = self.embedding_ranker.rank(work_id, candidates, num_results=num_results)
+        logging.info(
+            f"Embedding ranker returned {len(embedding_results)}/{num_results} candidates."
+        )
         return embedding_results

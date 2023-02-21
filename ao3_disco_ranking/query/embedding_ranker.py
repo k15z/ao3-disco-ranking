@@ -18,11 +18,11 @@ class EmbeddingRanker:
 
         embeddings = np.zeros((len(self.work_to_idx), 128))
         for work, i in tqdm(self.work_to_idx.items()):
-            embeddings[i] = model.embedding(work)
+            embeddings[i] = model.embedding(work, works)
         self.embeddings = torch.tensor(embeddings)
 
     def rank(
-        self, work_id: WorkID, candidates: Optional[List[WorkID]] = None, N: int = 50
+        self, work_id: WorkID, candidates: Optional[List[WorkID]] = None, num_results: int = 50
     ) -> List[Tuple[WorkID, float]]:
         if candidates:
             valid_idx = [self.work_to_idx[workID] for workID in candidates]
@@ -36,15 +36,15 @@ class EmbeddingRanker:
             vec = self.embeddings[self.work_to_idx[work_id]]
         else:
             work_json = list(get_work_jsons([work_id]))[0]
-            self.model.works[work_id] = work_json
-            vec = torch.tensor(self.model.embedding(work_id))
+            works = {work_id: work_json}
+            vec = self.model.embedding(work_id, works)
         scores = F.cosine_similarity(vec, embeddings)
 
         results = []
-        values, indices = torch.topk(scores, min(N, len(scores)))
+        values, indices = torch.topk(scores, min(num_results, len(scores)))
         for v, i in zip(values, indices):
             other_id = idx_to_work[i.item()]
             if other_id == work_id:
                 continue
-            results.append((other_id, v))
+            results.append((other_id, v.item()))
         return results

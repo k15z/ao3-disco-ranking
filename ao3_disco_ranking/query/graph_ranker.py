@@ -9,8 +9,18 @@ class GraphRanker:
         self.collections = collections
 
     def rank(
-        self, work_id: WorkID, candidates: Optional[List[WorkID]] = None, N: int = 50
+        self, work_id: WorkID, candidates: Optional[List[WorkID]] = None, num_results: int = 50
     ) -> List[Tuple[WorkID, float]]:
+        """Rank works based on bookmark score.
+
+        Args:
+            work_id: The work ID that is being queried.
+            candidates: A list of works to consider. If not set, all works are considered.
+            num_results: The number of candidates to return.
+
+        Returns:
+            A list of tuples contain the work_id and relevance score.
+        """
         work_to_score = Counter()
         for collection in self.collections:
             if work_id in collection:
@@ -19,4 +29,4 @@ class GraphRanker:
                         continue
                     if not candidates or (other_id in candidates):
                         work_to_score[other_id] += 1
-        return work_to_score.most_common(N)
+        return work_to_score.most_common(num_results)

@@ -20,6 +20,16 @@ class TagsFilter:
     def fetch(
         self, required_tags: Tags = [], excluded_tags: Tags = [], one_or_more_tags: Tags = []
     ) -> Set[WorkID]:
+        """Fetch candidate WorkIDs based on the tag filters.
+
+        Args:
+            required_tags: The works must contain all of these tags.
+            excluded_tags: The works must not contain any of these tags.
+            one_or_more_tags: The works must contain one-or-more of these tags.
+
+        Returns:
+            The set of works satisfying the specified criteria.
+        """
         if not one_or_more_tags:
             candidates = set(self.workIDs)
         else:
