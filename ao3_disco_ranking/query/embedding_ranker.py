@@ -1,10 +1,11 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 
+from ao3_disco_ranking.ao3 import get_work_jsons
 from ao3_disco_ranking.types import WorkID
 
 
@@ -20,7 +21,9 @@ class EmbeddingRanker:
             embeddings[i] = model.embedding(work)
         self.embeddings = torch.tensor(embeddings)
 
-    def rank(self, work_id: WorkID, candidates: List[WorkID]) -> List[Tuple[WorkID, float]]:
+    def rank(
+        self, work_id: WorkID, candidates: Optional[List[WorkID]] = None, N: int = 50
+    ) -> List[Tuple[WorkID, float]]:
         if candidates:
             valid_idx = [self.work_to_idx[workID] for workID in candidates]
             embeddings = self.embeddings[valid_idx]
@@ -30,14 +33,18 @@ class EmbeddingRanker:
             idx_to_work = self.idx_to_work
 
         if work_id in self.work_to_idx:
-            idx = self.work_to_idx[work_id]
-            vec = self.embeddings[idx]
+            vec = self.embeddings[self.work_to_idx[work_id]]
         else:
-            raise NotImplementedError("scrape work and embed?")
+            work_json = list(get_work_jsons([work_id]))[0]
+            self.model.works[work_id] = work_json
+            vec = torch.tensor(self.model.embedding(work_id))
         scores = F.cosine_similarity(vec, embeddings)
 
         results = []
-        values, indices = torch.topk(scores, 20)
+        values, indices = torch.topk(scores, min(N, len(scores)))
         for v, i in zip(values, indices):
-            results.append((idx_to_work[i.item()], v))
+            other_id = idx_to_work[i.item()]
+            if other_id == work_id:
+                continue
+            results.append((other_id, v))
         return results
