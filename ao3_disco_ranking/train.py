@@ -14,6 +14,7 @@ output_dim = 128
 max_hash_size = 50000
 dropout = 0.0
 use_batch_norm = False
+debug = True
 
 if model_type == "baseline":
     model = BaseModel()
@@ -26,6 +27,7 @@ elif model_type == "first":
         max_hash_size=max_hash_size,
         dropout=dropout,
         use_batch_norm=use_batch_norm,
+        debug=debug,
     )
 elif model_type == "second":
     model = SecondModel(use_xgb=use_xgb)
@@ -41,7 +43,10 @@ elif model_type == "deepsecond":
     )
 
 model.fit("data/train.jsonl")
-print("ncdg:", score(model, "data/test.jsonl"))
+
+with open("data/works_collections.pkl", "rb") as fin:
+    works, _ = pickle.load(fin)
+print("ncdg:", score(model, works, "data/test.jsonl", debug))
 
 with open("model.pkl", "wb") as fout:
     pickle.dump(model, fout)

@@ -1,12 +1,21 @@
 import unittest
-from copy import deepcopy
 
 from ao3_disco_ranking.query.graph_ranker import GraphRanker
-from ao3_disco_ranking.query.tags_filter import TagsFilter
 
 
 class TestGraphRanker(unittest.TestCase):
     def test_rank(self):
-        collections = [("11111111", "00000000")]
+        collections = [("1", "2", "3"), (), ("1", "3", "4"), ("1"), ("2", "3")]
         graph = GraphRanker(collections)
-        graph.rank("11111111")
+
+        work_to_score = graph.rank("1")
+        assert set(work_to_score) == set([("2", 1), ("3", 2), ("4", 1)])
+
+        work_to_score = graph.rank("5")
+        assert work_to_score == []
+
+        work_to_score = graph.rank("1", candidates=["0", "1", "2", "3"])
+        assert set(work_to_score) == set([("2", 1), ("3", 2)])
+
+        work_to_score = graph.rank("1", candidates=["0", "1", "2", "3"], num_results=1)
+        assert work_to_score == [("3", 2)]

@@ -21,7 +21,7 @@ class UtilsTest(unittest.TestCase):
                     ("d", 3),
                 ]
             )
-            self.assertAlmostEqual(score(model, path_to_jsonl), 1.0)
+            self.assertAlmostEqual(score(model, {}, path_to_jsonl), 1.0)
 
             model = Mock()
             model.rank = Mock(
@@ -31,4 +31,4 @@ class UtilsTest(unittest.TestCase):
                     ("d", 1),
                 ]
             )
-            self.assertAlmostEqual(score(model, path_to_jsonl), 0.789, places=2)
+            self.assertAlmostEqual(score(model, {}, path_to_jsonl), 0.789, places=2)

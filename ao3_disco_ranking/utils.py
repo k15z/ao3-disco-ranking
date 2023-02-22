@@ -1,16 +1,15 @@
 import json
+from typing import Any, Dict
 
 import numpy as np
 from sklearn.metrics import ndcg_score
 from tqdm import tqdm
 
-from ao3_disco_ranking.models import BaseModel, SecondModel
+from ao3_disco_ranking.models import BaseModel
 
 
-def score(model: BaseModel, path_to_jsonl: str):
+def score(model: BaseModel, works: Dict[str, Any], path_to_jsonl: str, debug: bool = False):
     """Compute the discounted cumulative gain."""
-    with open("data/works_collections.pkl", "rb") as fin:
-        works, _ = pickle.load(fin)
     ndcg = []
     with open(path_to_jsonl, "rt") as fin:
         for x in tqdm(map(json.loads, fin), "eval"):
@@ -22,4 +21,6 @@ def score(model: BaseModel, path_to_jsonl: str):
                 y_true.append(candidates[work])
                 y_pred.append(score)
             ndcg.append(ndcg_score([y_true], [y_pred]))
+            if debug and len(ndcg) > 1000:
+                break
     return np.mean(ndcg)

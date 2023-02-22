@@ -29,6 +29,7 @@ class FirstModel(BaseModel):
         max_hash_size=50000,
         dropout=0.0,
         use_batch_norm=False,
+        debug=False,
     ):
         self.lr = lr
         self.num_epochs = num_epochs
@@ -37,6 +38,7 @@ class FirstModel(BaseModel):
         self.max_hash_size = max_hash_size
         self.dropout = dropout
         self.use_batch_norm = use_batch_norm
+        self.debug = debug
 
     def fit(self, path_to_jsonl):
         with open("data/works_collections.pkl", "rb") as fin:
@@ -50,6 +52,8 @@ class FirstModel(BaseModel):
                 work_to_json[x["work"]] = works[x["work"]]
                 for work, _ in x["candidates"].items():
                     work_to_json[work] = works[work]
+                if self.debug and len(work_to_json) > 10000:
+                    break  # In debug mode, only process 10000 works.
 
         self.featurizer = FeatureExtractor()
         self.featurizer.fit(work_to_json)
@@ -64,6 +68,7 @@ class FirstModel(BaseModel):
         )
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True)
         for epoch in range(self.num_epochs):
             shuffle(dataset)
 
@@ -106,9 +111,11 @@ class FirstModel(BaseModel):
                 optimizer.step()
                 losses.append(loss.item())
 
-                iterator.set_description_str(f"Epoch {epoch} | Loss {losses[-1]:.4f}")
-            print(f"epoch: {epoch}")
+                if len(losses) % 10 == 0:
+                    iterator.set_description_str(f"Epoch {epoch} | Loss {np.mean(losses):.4f}")
+            print(f"step: {epoch}")
             print(f"loss: {np.mean(losses)}")
+            scheduler.step(np.mean(losses))
 
         self.model.eval()
 
