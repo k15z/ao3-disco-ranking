@@ -16,7 +16,7 @@ class EmbeddingRanker:
         self.work_to_idx = {work: i for i, work in enumerate(works)}
         self.idx_to_work = {k: v for v, k in self.work_to_idx.items()}
 
-        embeddings = np.zeros((len(self.work_to_idx), 128))
+        embeddings = np.zeros((len(self.work_to_idx), model.output_dim))
         for work, i in tqdm(self.work_to_idx.items()):
             embeddings[i] = model.embedding(work, works)
         self.embeddings = torch.tensor(embeddings)

@@ -65,4 +65,5 @@ build-backend = "poetry.masonry.api"
 [tool.coverage.run]
 omit = [
     "ao3_disco_ranking/models/*.py",
+    "ao3_disco_ranking/scripts/*.py",
 ]

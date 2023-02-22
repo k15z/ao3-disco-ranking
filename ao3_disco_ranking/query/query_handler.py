@@ -1,4 +1,6 @@
+import gc
 import logging
+import pickle
 
 from ao3_disco_ranking.ao3 import get_work_jsons
 from ao3_disco_ranking.types import Tags, WorkID
@@ -17,6 +19,18 @@ class QueryHandler:
         self.tags_filter = tags_filter
         self.graph_ranker = graph_ranker
         self.embedding_ranker = embedding_ranker
+
+    def save(self, path_to_pkl: str):
+        with open(path_to_pkl, "wb") as fout:
+            pickle.dump(self, fout, protocol=-1)
+
+    @classmethod
+    def load(self, path_to_pkl: str) -> "QueryHandler":
+        with open(path_to_pkl, "rb") as fin:
+            gc.disable()
+            handler = pickle.load(fin)
+            gc.enable()
+        return handler
 
     def basic_query(
         self,
