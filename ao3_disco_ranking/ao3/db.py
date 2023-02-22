@@ -57,8 +57,7 @@ def get_work_jsons(work_ids: List[WorkID], include_content: bool = False):
 
 def get_work_json(work_id: str, include_content: bool = False):
     logging.info(f"Scraping work {work_id}...")
-    work = Work.load(work_id)
-    work = work.__dict__
+    work = Work.load(work_id).__dict__
     content = work["content"]
     with connect() as conn:
         with conn.cursor() as cursor:

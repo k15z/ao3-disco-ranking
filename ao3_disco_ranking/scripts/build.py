@@ -6,7 +6,12 @@ logging.basicConfig(level=logging.DEBUG)
 
 import pickle
 
-from ao3_disco_ranking.query import EmbeddingRanker, GraphRanker, QueryHandler, TagsFilter
+from ao3_disco_ranking.query import (
+    EmbeddingRanker,
+    GraphRanker,
+    QueryHandler,
+    TagsFilter,
+)
 
 with open("data/works_collections.pkl", "rb") as fin:
     works, collections = pickle.load(fin)

@@ -1,6 +1,6 @@
 from abc import ABC
 from random import shuffle
-from typing import List, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
 
 import numpy as np
 
@@ -21,7 +21,9 @@ class BaseModel(ABC):
         """
         raise NotImplementedError()
 
-    def rank(self, work_id: WorkID, candidates: List[WorkID]) -> List[Tuple[WorkID, float]]:
+    def rank(
+        self, work_id: WorkID, candidates: Iterable[WorkID], works: Dict[WorkID, Any]
+    ) -> List[Tuple[WorkID, float]]:
         """Select most relevant candidates.
 
         The base class simply returns the candidates in some random order.

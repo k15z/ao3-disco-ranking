@@ -3420,6 +3420,45 @@ docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=2.0)", "pre-commit", "pytest", "pytest-mock"]
 
 [[package]]
+name = "types-pymysql"
+version = "1.0.19.4"
+description = "Typing stubs for PyMySQL"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-PyMySQL-1.0.19.4.tar.gz", hash = "sha256:b0ea3716404f34b64213bbf406c8bccb89ffe3a94d6ddc2d275eafa01556c3b6"},
+    {file = "types_PyMySQL-1.0.19.4-py3-none-any.whl", hash = "sha256:594ee62779629fc6eeea011038bf775dcd32212e2daa4db8d300d920cc6c9d2f"},
+]
+
+[[package]]
+name = "types-requests"
+version = "2.28.11.14"
+description = "Typing stubs for requests"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-requests-2.28.11.14.tar.gz", hash = "sha256:232792870b60adb07d23175451ab4e6190021b0c584edf052d92d9b993118f06"},
+    {file = "types_requests-2.28.11.14-py3-none-any.whl", hash = "sha256:f84613b0d4c5d0eeb7879dfa05e14a3702b9c1f7a4ee81dfe9b4321b13fe93a1"},
+]
+
+[package.dependencies]
+types-urllib3 = "<1.27"
+
+[[package]]
+name = "types-urllib3"
+version = "1.26.25.7"
+description = "Typing stubs for urllib3"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-urllib3-1.26.25.7.tar.gz", hash = "sha256:df4d3e5472bf8830bd74eac12d56e659f88662ba040c7d106bf3a5bee26fff28"},
+    {file = "types_urllib3-1.26.25.7-py3-none-any.whl", hash = "sha256:28d2d7f5c31ff8ed4d9d2e396ce906c49d37523c3ec207d03d3b1695755a7199"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -3778,4 +3817,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "efc6d108453556ccb997bbae93d54961402a9bf9b4eef40fc279056c28faa201"
+content-hash = "935ead5b693a8dcee2c897b983b1a20ff0cbcf27004887f328c40edf61d444e6"

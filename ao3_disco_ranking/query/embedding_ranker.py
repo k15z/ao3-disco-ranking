@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -22,7 +22,7 @@ class EmbeddingRanker:
         self.embeddings = torch.tensor(embeddings)
 
     def rank(
-        self, work_id: WorkID, candidates: Optional[List[WorkID]] = None, num_results: int = 50
+        self, work_id: WorkID, candidates: Optional[Iterable[WorkID]] = None, num_results: int = 50
     ) -> List[Tuple[WorkID, float]]:
         if candidates:
             valid_idx = [self.work_to_idx[workID] for workID in candidates]

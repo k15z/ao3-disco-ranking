@@ -16,6 +16,6 @@ class BaseModelTest(unittest.TestCase):
             model.fit(path_to_jsonl)
             with self.assertRaises(NotImplementedError):
                 model.embedding("dummy")
-            candidate_score = model.rank("hello", ["a", "b", "c"])
+            candidate_score = model.rank("hello", ["a", "b", "c"], {})
             candidates, _ = zip(*candidate_score)
             assert set(candidates) == set(["a", "b", "c"])

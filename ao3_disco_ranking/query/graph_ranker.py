@@ -1,5 +1,6 @@
+import typing
 from collections import Counter
-from typing import List, Optional, Tuple
+from typing import Iterable, Optional, Sequence, Tuple
 
 from ao3_disco_ranking.types import WorkID
 
@@ -9,8 +10,8 @@ class GraphRanker:
         self.collections = collections
 
     def rank(
-        self, work_id: WorkID, candidates: Optional[List[WorkID]] = None, num_results: int = 50
-    ) -> List[Tuple[WorkID, float]]:
+        self, work_id: WorkID, candidates: Optional[Iterable[WorkID]] = None, num_results: int = 50
+    ) -> Sequence[Tuple[WorkID, int]]:
         """Rank works based on bookmark score.
 
         Args:
@@ -21,7 +22,7 @@ class GraphRanker:
         Returns:
             A list of tuples contain the work_id and relevance score.
         """
-        work_to_score = Counter()
+        work_to_score: typing.Counter[str] = Counter()
         for collection in self.collections:
             if work_id in collection:
                 for other_id in collection:
