@@ -10,13 +10,18 @@ class GraphRanker:
         self.collections = collections
 
     def rank(
-        self, work_id: WorkID, candidates: Optional[Iterable[WorkID]] = None, num_results: int = 50
-    ) -> Sequence[Tuple[WorkID, int]]:
+        self,
+        work_id: WorkID,
+        allowlist: Optional[Iterable[WorkID]] = None,
+        blocklist: Iterable[WorkID] = [],
+        num_results: int = 50,
+    ) -> Sequence[Tuple[WorkID, float]]:
         """Rank works based on bookmark score.
 
         Args:
             work_id: The work ID that is being queried.
-            candidates: A list of works to consider. If not set, all works are considered.
+            allowlist: A list of works to consider. If not set, all works are considered.
+            blocklist: A list of works to remove.
             num_results: The number of candidates to return.
 
         Returns:
@@ -26,8 +31,8 @@ class GraphRanker:
         for collection in self.collections:
             if work_id in collection:
                 for other_id in collection:
-                    if other_id == work_id:
+                    if other_id == work_id or other_id in blocklist:
                         continue
-                    if not candidates or (other_id in candidates):
+                    if not allowlist or (other_id in allowlist):
                         work_to_score[other_id] += 1
-        return work_to_score.most_common(num_results)
+        return work_to_score.most_common(num_results)  # type: ignore

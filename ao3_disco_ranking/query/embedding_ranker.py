@@ -22,12 +22,22 @@ class EmbeddingRanker:
         self.embeddings = torch.tensor(embeddings)
 
     def rank(
-        self, work_id: WorkID, candidates: Optional[Iterable[WorkID]] = None, num_results: int = 50
+        self,
+        work_id: WorkID,
+        allowlist: Optional[Iterable[WorkID]] = None,
+        blocklist: Iterable[WorkID] = [],
+        num_results: int = 50,
     ) -> List[Tuple[WorkID, float]]:
-        if candidates:
-            valid_idx = [self.work_to_idx[workID] for workID in candidates]
+        if allowlist:
+            valid_idx = [self.work_to_idx[workID] for workID in allowlist]
             embeddings = self.embeddings[valid_idx]
-            idx_to_work = {i: workID for i, workID in enumerate(candidates)}
+            idx_to_work = {i: workID for i, workID in enumerate(allowlist)}
+        elif blocklist:
+            valid_idx = [
+                self.work_to_idx[workID] for workID in self.work_to_idx if workID not in blocklist
+            ]
+            embeddings = self.embeddings[valid_idx]
+            idx_to_work = {i: self.idx_to_work[idx] for i, idx in enumerate(valid_idx)}
         else:
             embeddings = self.embeddings
             idx_to_work = self.idx_to_work
