@@ -1,3 +1,8 @@
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+
 from bottle import post, request, route, run, static_file
 
 from ao3_disco_ranking.ao3 import get_work_jsons
@@ -21,12 +26,16 @@ def work():
 def query():
     work_ids = request.json["work_ids"]
     blocklist = request.json.get("blocklist", [])
-    included_tags = request.json.get("included_tags", [])
+    required_tags = request.json.get("required_tags", [])
     excluded_tags = request.json.get("excluded_tags", [])
+
+    required_tags = [tuple(x) for x in required_tags]
+    excluded_tags = [tuple(x) for x in excluded_tags]
+
     work_score = qh.multi_query(
         work_ids=work_ids,
         blocklist=blocklist,
-        included_tags=included_tags,
+        required_tags=required_tags,
         excluded_tags=excluded_tags,
         num_results=20,
     )

@@ -39,7 +39,7 @@ class QueryHandler:
         self,
         work_id: WorkID,
         blocklist: List[WorkID] = [],
-        included_tags: Tags = [],
+        required_tags: Tags = [],
         excluded_tags: Tags = [],
         match_fandom: bool = True,
         num_results: int = 50,
@@ -53,9 +53,9 @@ class QueryHandler:
                 one_or_more_tags.append(("fandom", fandom))
 
         candidates = None
-        if included_tags or excluded_tags or one_or_more_tags:
+        if required_tags or excluded_tags or one_or_more_tags:
             logging.info("Applying the tags filter...")
-            candidates = self.tags_filter.fetch(included_tags, excluded_tags, one_or_more_tags)
+            candidates = self.tags_filter.fetch(required_tags, excluded_tags, one_or_more_tags)
             candidates -= set(blocklist)
             if not candidates:
                 raise ValueError("No works could be found.")
@@ -82,7 +82,7 @@ class QueryHandler:
         self,
         work_ids: List[WorkID],
         blocklist: List[WorkID],
-        included_tags: Tags = [],
+        required_tags: Tags = [],
         excluded_tags: Tags = [],
         match_fandom: bool = True,
         num_results: int = 50,
@@ -91,7 +91,7 @@ class QueryHandler:
         work_to_sources = defaultdict(set)
         for work_id in work_ids:
             for other_id, score in self.basic_query(
-                work_id, blocklist, included_tags, excluded_tags, match_fandom, num_results
+                work_id, blocklist, required_tags, excluded_tags, match_fandom, num_results
             ):
                 work_to_score[other_id] += score  # type: ignore
                 work_to_sources[other_id].add(work_id)

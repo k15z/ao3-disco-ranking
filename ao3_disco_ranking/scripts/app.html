@@ -204,7 +204,8 @@
                 redirect: 'follow', // manual, *follow, error
                 referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
                 body: JSON.stringify({
-                    "work_ids": work_ids
+                    "work_ids": work_ids,
+                    "required_tags": []
                 }) // body data type must match "Content-Type" header
             });
             return await result.json()
