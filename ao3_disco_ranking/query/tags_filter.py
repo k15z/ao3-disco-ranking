@@ -1,7 +1,8 @@
 import logging
-from collections import defaultdict
-from typing import Set
+from collections import Counter, defaultdict
+from typing import Sequence, Set, Tuple
 
+import ahocorasick
 from tqdm.auto import tqdm
 
 from ao3_disco_ranking.types import Tags, WorkID
@@ -18,6 +19,10 @@ class TagsFilter:
             for tag_type, tag_values in work["tags"].items():
                 for tag_value in tag_values:
                     self.tag_to_works[(tag_type, tag_value)].add(work_id)
+
+        self.search = ahocorasick.Automaton()
+        for (tag_type, tag_value), works in self.tag_to_works.items():
+            self.search.add_word(tag_value.lower(), (tag_type, tag_value, len(works)))
 
     def fetch(
         self, required_tags: Tags = [], excluded_tags: Tags = [], one_or_more_tags: Tags = []
@@ -51,3 +56,31 @@ class TagsFilter:
             logger.info(f"Found {len(candidates)} after excluding...")
 
         return candidates
+
+    def suggest_tags(
+        self,
+        q="",
+        required_tags: Tags = [],
+        excluded_tags: Tags = [],
+        one_or_more_tags: Tags = [],
+    ) -> Sequence[Tuple[str, str, int, int]]:
+        try:  # temporary
+            assert self.search
+        except:
+            self.search = ahocorasick.Automaton()
+            for (tag_type, tag_value), works in self.tag_to_works.items():
+                self.search.add_word(tag_value.lower(), (tag_type, tag_value, len(works)))
+
+        results = []
+
+        candidate = Counter()  # type: ignore
+        for key in self.search.keys(q.lower(), "?", ahocorasick.MATCH_AT_LEAST_PREFIX):
+            tag_type, tag_value, count = self.search.get(key)
+            candidate[(tag_type, tag_value)] = count
+
+        eligible_works = self.fetch(required_tags, excluded_tags, one_or_more_tags)
+        for (tag_type, tag_value), score in candidate.most_common(20):
+            if_require = eligible_works.intersection(self.tag_to_works[(tag_type, tag_value)])
+            if_exclude = eligible_works - self.tag_to_works[(tag_type, tag_value)]
+            results.append((tag_type, tag_value, len(if_require), len(if_exclude)))
+        return results

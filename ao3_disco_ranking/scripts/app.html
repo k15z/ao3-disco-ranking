@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <title>AO3 Disco</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -87,12 +88,17 @@
         }
 
         .tag {
+            cursor: pointer;
             margin-right: 2px;
             margin-bottom: 2px;
             padding: 1px 10px;
             border-radius: 2px;
             display: inline-block;
             background-color: #eee;
+        }
+
+        .tag.required {
+            background-color: #555;
         }
 
         .recommendation {
@@ -121,7 +127,9 @@
                 <div class="mui--text-display1">{{works[work_id].title}}</div>
                 <div class="mui--text-subhead">by {{works[work_id].authors.join(", ")}}</div>
                 <div style="margin-top:5px;margin-bottom:5px;">
-                    <div class="tag" v-for="tag in works[work_id].tags.rating">{{tag}}</div>
+                    <div class="tag" @click="requireTag('rating', tag)"
+                        :class="{'required': isTagRequired('rating', tag)}" v-for="tag in works[work_id].tags.rating">
+                        {{tag}}</div>
                     <div class="tag" v-for="tag in works[work_id].tags.category">{{tag}}</div>
                 </div>
             </div>
@@ -134,11 +142,15 @@
             </p>
             <p>
                 <b>Characters: </b>
-            <div class="tag" v-for="tag in works[work_id].tags.character">{{tag}}</div>
+            <div class="tag" @click="requireTag('character', tag)"
+                :class="{'required': isTagRequired('character', tag)}" v-for="tag in works[work_id].tags.character">
+                {{tag}}</div>
             </p>
             <p>
                 <b>Relationships: </b>
-            <div class="tag" v-for="tag in works[work_id].tags.relationship">{{tag}}</div>
+            <div class="tag" @click="requireTag('relationship', tag)"
+                :class="{'required': isTagRequired('relationship', tag)}"
+                v-for="tag in works[work_id].tags.relationship">{{tag}}</div>
             </p>
             <div style="text-align:center">
                 <a :href="'http://archiveofourown.org/works/' + work_id" target="_blank"
@@ -192,7 +204,7 @@
             return await result.json()
         }
 
-        let getRecommendations = async (work_ids) => {
+        let getRecommendations = async (work_ids, required_tags) => {
             let result = await fetch("/query", {
                 method: 'POST', // *GET, POST, PUT, DELETE, etc.
                 mode: 'cors', // no-cors, *cors, same-origin
@@ -205,7 +217,7 @@
                 referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
                 body: JSON.stringify({
                     "work_ids": work_ids,
-                    "required_tags": []
+                    "required_tags": required_tags,
                 }) // body data type must match "Content-Type" header
             });
             return await result.json()
@@ -216,18 +228,54 @@
             work_id: 0,
             works: {},
             recommendations: [],
+            required_tags: [],
             fetchData() {
                 this.work_id = window.location.pathname.split("/")[2]
                 getWorks([
                     this.work_id
                 ]).then((works) => {
+                    document.title = "AO3 Disco - " + works[this.work_id].title;
                     Object.entries(works).forEach(([key, value]) => {
                         this.works[key] = value
                     })
                 })
                 getRecommendations([
                     this.work_id
-                ]).then((result) => {
+                ], []).then((result) => {
+                    let workIDs = [];
+                    result.results.forEach((res) => {
+                        workIDs.push(res.id)
+                    })
+                    getWorks(workIDs).then((works) => {
+                        Object.entries(works).forEach(([key, value]) => {
+                            this.works[key] = value
+                        })
+                    })
+                    this.recommendations = result.results
+                })
+            },
+            isTagRequired(tag_type, tag_value) {
+                var required = false
+                this.required_tags.forEach(tag_type_value => {
+                    if (tag_type_value[0] == tag_type && tag_type_value[1] == tag_value) {
+                        required = true;
+                    }
+                })
+                console.log(required)
+                return required
+            },
+            requireTag(tag_type, tag_value) {
+                if (this.isTagRequired(tag_type, tag_value)) {
+                    this.required_tags = this.required_tags.filter(tag_type_value => {
+                        return tag_type_value[0] != tag_type || tag_type_value[1] != tag_value
+                    })
+                } else {
+                    this.required_tags.push([tag_type, tag_value])
+                }
+                this.recommendations = []
+                getRecommendations([
+                    this.work_id
+                ], this.required_tags).then((result) => {
                     let workIDs = [];
                     result.results.forEach((res) => {
                         workIDs.push(res.id)
