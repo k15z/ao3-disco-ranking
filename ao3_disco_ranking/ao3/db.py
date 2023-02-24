@@ -59,6 +59,7 @@ def get_work_json(work_id: str, include_content: bool = False):
     logging.info(f"Scraping work {work_id}...")
     work = Work.load(work_id).__dict__
     content = work["content"]
+    del work["content"]
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
@@ -75,6 +76,6 @@ def get_work_json(work_id: str, include_content: bool = False):
                 tags_to_insert,
             )
             conn.commit()
-    if not include_content:
-        del work["content"]
+    if include_content:
+        work["content"] = content
     return work

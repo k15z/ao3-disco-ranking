@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://unpkg.com/petite-vue"></script>
+    <!-- load MUI -->
+    <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
+    <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        .indeterminate-progress-bar {
+            /* Color */
+            background-color: #d1d5db;
+
+            /* Rounded border */
+            border-radius: 9999px;
+
+            /* Size */
+            height: 0.5rem;
+
+            position: relative;
+            overflow: hidden;
+        }
+
+        .indeterminate-progress-bar__progress {
+            /* Color */
+            background-color: #3b82f6;
+
+            /* Rounded border */
+            border-radius: 9999px;
+
+            /* Absolute position */
+            position: absolute;
+            bottom: 0;
+            top: 0;
+            width: 50%;
+
+            /* Move the bar infinitely */
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
+            animation-name: indeterminate-progress-bar;
+        }
+
+        @keyframes indeterminate-progress-bar {
+            from {
+                left: -50%;
+            }
+
+            to {
+                left: 100%;
+            }
+        }
+
+        @keyframes lds-facebook {
+            0% {
+                top: 8px;
+                height: 64px;
+            }
+
+            50%,
+            100% {
+                top: 24px;
+                height: 32px;
+            }
+        }
+
+
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+        }
+
+        .mui--text-display1 {
+            font-weight: 500;
+        }
+
+        .work {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid black;
+        }
+
+        .tag {
+            margin-right: 2px;
+            margin-bottom: 2px;
+            padding: 1px 10px;
+            border-radius: 2px;
+            display: inline-block;
+            background-color: #eee;
+        }
+
+        .recommendation {
+            cursor: pointer;
+        }
+
+        .recommendation:hover {
+            box-shadow: 0 4px 4px 0 rgba(0, 0, 0, .16), 0 0 4px 0 rgba(0, 0, 0, .12)
+        }
+
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div v-cloak class="mui-container" style="max-width:720px;" v-scope v-effect="fetchData()">
+        <br />
+        <div v-if="!(work_id in works)" class="indeterminate-progress-bar">
+            <div class="indeterminate-progress-bar__progress"></div>
+        </div>
+        <div class="mui-panel" v-if="(work_id in works)">
+            <br />
+            <div style="text-align:center">
+                <div class="mui--text-display1">{{works[work_id].title}}</div>
+                <div class="mui--text-subhead">by {{works[work_id].authors.join(", ")}}</div>
+                <div style="margin-top:5px;margin-bottom:5px;">
+                    <div class="tag" v-for="tag in works[work_id].tags.rating">{{tag}}</div>
+                    <div class="tag" v-for="tag in works[work_id].tags.category">{{tag}}</div>
+                </div>
+            </div>
+            <br />
+            <div class="mui--text-body1" style="font-weight:300;">{{works[work_id].summary}}</div>
+            <br />
+            <p>
+                <b>Fandoms: </b>
+            <div class="tag" v-for="tag in works[work_id].tags.fandom">{{tag}}</div>
+            </p>
+            <p>
+                <b>Characters: </b>
+            <div class="tag" v-for="tag in works[work_id].tags.character">{{tag}}</div>
+            </p>
+            <p>
+                <b>Relationships: </b>
+            <div class="tag" v-for="tag in works[work_id].tags.relationship">{{tag}}</div>
+            </p>
+            <div style="text-align:center">
+                <a :href="'http://archiveofourown.org/works/' + work_id" target="_blank"
+                    class="mui-btn mui-btn--primary">Open Work</a>
+                <button class="mui-btn mui-btn--danger">Add To Library</button>
+                <button class="mui-btn mui-btn--accent">Hide Work</button>
+            </div>
+        </div>
+        <br />
+        <div v-if="recommendations.length > 0">
+            <div class="mui--text-headline">You may also enjoy...</div>
+            <br />
+            <div v-if="recommendations && !(recommendations[0].id in works)" class="indeterminate-progress-bar">
+                <div class="indeterminate-progress-bar__progress"></div>
+            </div>
+            <div v-for="rec in recommendations" :key="rec.id">
+                <div v-if="rec.id in works" @click="window.location.href = '/app/' + rec.id"
+                    class="mui-panel recommendation">
+                    <div class="mui--text-title">{{works[rec.id].title}}</div>
+                    <div class="mui--text-subhead" style="font-weight:300;">by {{works[rec.id].authors.join(", ")}}
+                    </div>
+                    <div style="margin-top:5px;margin-bottom:5px;">
+                        <div class="tag" v-for="tag in works[rec.id].tags.category">{{tag}}</div>
+                        <div class="tag" v-for="tag in works[rec.id].tags.relationship">{{tag}}</div>
+                    </div>
+                    <p>
+                        {{works[rec.id].summary}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/petite-vue?module'
+
+        let getWorks = async (work_ids) => {
+            let result = await fetch("/work", {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, *cors, same-origin
+                cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: 'same-origin', // include, *same-origin, omit
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                redirect: 'follow', // manual, *follow, error
+                referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                body: JSON.stringify({
+                    "work_ids": work_ids
+                }) // body data type must match "Content-Type" header
+            });
+            return await result.json()
+        }
+
+        let getRecommendations = async (work_ids) => {
+            let result = await fetch("/query", {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, *cors, same-origin
+                cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: 'same-origin', // include, *same-origin, omit
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                redirect: 'follow', // manual, *follow, error
+                referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                body: JSON.stringify({
+                    "work_ids": work_ids
+                }) // body data type must match "Content-Type" header
+            });
+            return await result.json()
+        }
+
+        createApp({
+            // exposed to all expressions
+            work_id: 0,
+            works: {},
+            recommendations: [],
+            fetchData() {
+                this.work_id = window.location.pathname.split("/")[2]
+                getWorks([
+                    this.work_id
+                ]).then((works) => {
+                    Object.entries(works).forEach(([key, value]) => {
+                        this.works[key] = value
+                    })
+                })
+                getRecommendations([
+                    this.work_id
+                ]).then((result) => {
+                    let workIDs = [];
+                    result.results.forEach((res) => {
+                        workIDs.push(res.id)
+                    })
+                    getWorks(workIDs).then((works) => {
+                        Object.entries(works).forEach(([key, value]) => {
+                            this.works[key] = value
+                        })
+                    })
+                    this.recommendations = result.results
+                })
+            },
+        }).mount()
+    </script>
+</body>
+
+</html>

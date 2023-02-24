@@ -284,6 +284,18 @@ webencodings = "*"
 css = ["tinycss2 (>=1.1.0,<1.2)"]
 
 [[package]]
+name = "bottle"
+version = "0.12.24"
+description = "Fast and simple WSGI-framework for small web-applications."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "bottle-0.12.24-py3-none-any.whl", hash = "sha256:fa88c66413ab07b5046545ac6e47a967d582143aef87f2c0fb0ef571d9977b5e"},
+    {file = "bottle-0.12.24.tar.gz", hash = "sha256:2480121a73e87380989b77e32bd2092d190e7ea7d71e6f1b8f7af7eab9d54ea3"},
+]
+
+[[package]]
 name = "cachetools"
 version = "5.3.0"
 description = "Extensible memoizing collections and decorators"
@@ -3817,4 +3829,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "935ead5b693a8dcee2c897b983b1a20ff0cbcf27004887f328c40edf61d444e6"
+content-hash = "01bd7021c1169cd668fa43aef23da60b11f86d212aaeeb4523d9e3855f2a56b4"
